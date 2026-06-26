@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>电费预警 — 配置面板</title>
+<style>
+  :root {
+    --bg: #f5f6fa;
+    --card-bg: #fff;
+    --text: #2d3436;
+    --sub: #636e72;
+    --border: #dfe6e9;
+    --primary: #0984e3;
+    --danger: #d63031;
+    --success: #00b894;
+    --warn: #fdcb6e;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding: 20px; }
+  .container { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 1.6em; margin-bottom: 6px; }
+  .subtitle { color: var(--sub); font-size: .9em; margin-bottom: 24px; }
+  .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 16px; }
+  .card-title { font-size: 1.05em; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-grid .full { grid-column: 1 / -1; }
+  label { display: block; font-size: .85em; font-weight: 500; margin-bottom: 4px; color: var(--sub); }
+  input, textarea { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: .9em; font-family: inherit; transition: border .2s; }
+  input:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(9,132,227,.12); }
+  textarea { resize: vertical; min-height: 60px; }
+  .help { font-size: .78em; color: var(--sub); margin-top: 3px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 20px; border: none; border-radius: 6px; font-size: .9em; font-weight: 500; cursor: pointer; transition: all .15s; }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: #0773c5; }
+  .btn-outline { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+  .btn-outline:hover { background: #f0f7ff; }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-success:hover { background: #00a381; }
+  .btn-warn { background: var(--warn); color: #333; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: var(--radius); color: #fff; font-size: .9em; font-weight: 500; z-index: 1000; max-width: 380px; animation: slide .3s; }
+  .toast-success { background: var(--success); }
+  .toast-error { background: var(--danger); }
+  @keyframes slide { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  .test-result { margin-top: 12px; padding: 10px 14px; border-radius: 6px; font-size: .88em; display: none; }
+  .test-result.show { display: block; }
+  .test-result .success { color: var(--success); }
+  .test-result .error { color: var(--danger); }
+  .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+  .status-dot.green { background: var(--success); }
+  .status-dot.red { background: var(--danger); }
+  @media (max-width: 500px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .actions { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>⚡ 电费预警配置面板</h1>
+  <p class="subtitle">填写宿舍信息、Token 和飞书 Webhook，保存后即可运行监控</p>
+
+  <!-- 宿舍信息 -->
+  <div class="card">
+    <div class="card-title">📍 宿舍信息</div>
+    <div class="form-grid">
+      <div>
+        <label>校区显示名称</label>
+        <input id="campus_name" placeholder="青岛校区">
+      </div>
+      <div>
+        <label>校区参数 <span style="color:var(--danger)">*</span></label>
+        <input id="campus_param" placeholder="从 F12 Payload 中复制">
+        <div class="help">格式：青岛校区&amp;青岛校区</div>
+      </div>
+      <div>
+        <label>楼栋显示名称</label>
+        <input id="building_name" placeholder="凤凰居1号楼">
+      </div>
+      <div>
+        <label>楼栋参数 <span style="color:var(--danger)">*</span></label>
+        <input id="building_param" placeholder="从 F12 Payload 中复制">
+        <div class="help">格式：1503975832&amp;凤凰居1号楼</div>
+      </div>
+      <div>
+        <label>房间号 <span style="color:var(--danger)">*</span></label>
+        <input id="room" placeholder="b111">
+      </div>
+    </div>
+  </div>
+
+  <!-- 认证 -->
+  <div class="card">
+    <div class="card-title">🔐 认证 Token</div>
+    <div class="form-grid">
+      <div class="full">
+        <label>Synjones-Auth <span style="color:var(--danger)">*</span></label>
+        <textarea id="token" placeholder="bearer eyJ...（从浏览器 F12 → Network → getThirdData → Headers 中复制）"></textarea>
+        <div class="help">以 bearer 开头的一长串字符</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 通知 -->
+  <div class="card">
+    <div class="card-title">📡 飞书通知</div>
+    <div class="form-grid">
+      <div class="full">
+        <label>Webhook URL</label>
+        <textarea id="feishu_webhook_url" placeholder="https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxx"></textarea>
+        <div class="help">飞书群 → 群设置 → 群机器人 → 添加自定义机器人 → 复制 Webhook 地址</div>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <button class="btn btn-outline" onclick="testFeishu()" id="btn-feishu">📨 测试飞书连接</button>
+      <div id="feishu-result" class="test-result"></div>
+    </div>
+  </div>
+
+  <!-- 预警设置 -->
+  <div class="card">
+    <div class="card-title">⚙️ 预警设置</div>
+    <div class="form-grid">
+      <div>
+        <label>低电量阈值（度）</label>
+        <input id="threshold" type="number" step="0.1" min="0" placeholder="5.0">
+        <div class="help">电量低于此值时触发告警</div>
+      </div>
+      <div>
+        <label>最大告警次数</label>
+        <input id="max_count" type="number" min="1" max="10" placeholder="3">
+        <div class="help">同一状态最多告警次数，避免骚扰</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 操作按钮 -->
+  <div class="actions">
+    <button class="btn btn-outline" onclick="testApi()" id="btn-test">🔍 测试 API 连接</button>
+    <button class="btn btn-primary" onclick="save()" id="btn-save">💾 保存配置</button>
+    <button class="btn btn-success" onclick="saveAndRun()" id="btn-run">▶ 保存并运行</button>
+  </div>
+  <div id="api-result" class="test-result" style="margin-top:12px"></div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function toast(msg, type) {
+  const t = document.createElement('div');
+  t.className = 'toast toast-' + type;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function setLoading(btn, loading) {
+  btn.disabled = loading;
+  btn.textContent = loading ? btn.dataset.loading || '处理中...' : btn.dataset.original || btn.textContent;
+  if (!loading) btn.dataset.original = '';
+}
+
+function getFormData() {
+  return {
+    campus_name: $('campus_name').value,
+    campus_param: $('campus_param').value,
+    building_name: $('building_name').value,
+    building_param: $('building_param').value,
+    room: $('room').value,
+    token: $('token').value,
+    feishu_webhook_url: $('feishu_webhook_url').value,
+    threshold: $('threshold').value || '5.0',
+    max_count: $('max_count').value || '3',
+  };
+}
+
+async function loadConfig() {
+  try {
+    const resp = await fetch('/api/load');
+    const data = await resp.json();
+    $('campus_name').value = data.campus_name || '';
+    $('campus_param').value = data.campus_param || '';
+    $('building_name').value = data.building_name || '';
+    $('building_param').value = data.building_param || '';
+    $('room').value = data.room || '';
+    $('token').value = data.token || '';
+    $('feishu_webhook_url').value = data.feishu_webhook_url || '';
+    $('threshold').value = data.threshold || '5.0';
+    $('max_count').value = data.max_count || '3';
+  } catch(e) {}
+}
+
+async function save() {
+  const btn = $('btn-save');
+  btn.dataset.original = btn.textContent;
+  setLoading(btn, true);
+  btn.dataset.loading = '保存中...';
+  try {
+    const resp = await fetch('/api/save', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(getFormData())
+    });
+    if (resp.ok) toast('配置已保存', 'success');
+    else toast('保存失败', 'error');
+  } catch(e) {
+    toast('保存失败: ' + e.message, 'error');
+  }
+  setLoading(btn, false);
+}
+
+async function testApi() {
+  const btn = $('btn-test');
+  const result = $('api-result');
+  btn.dataset.original = btn.textContent;
+  setLoading(btn, true);
+  btn.dataset.loading = '测试中...';
+  try {
+    const resp = await fetch('/api/test', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(getFormData())
+    });
+    const data = await resp.json();
+    result.className = 'test-result show';
+    if (data.ok) {
+      result.innerHTML = '<span class="success">✅ API 连接成功！当前电量：<b>' + data.power.toFixed(2) + ' 度</b></span>';
+    } else {
+      result.innerHTML = '<span class="error">❌ ' + data.error + '</span>';
+    }
+  } catch(e) {
+    result.className = 'test-result show';
+    result.innerHTML = '<span class="error">请求失败: ' + e.message + '</span>';
+  }
+  setLoading(btn, false);
+}
+
+async function testFeishu() {
+  const btn = $('btn-feishu');
+  const result = $('feishu-result');
+  btn.dataset.original = btn.textContent;
+  setLoading(btn, true);
+  btn.dataset.loading = '发送中...';
+  try {
+    const resp = await fetch('/api/test-feishu', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({webhook_url: $('feishu_webhook_url').value})
+    });
+    const data = await resp.json();
+    result.className = 'test-result show';
+    if (data.ok) {
+      result.innerHTML = '<span class="success">✅ 飞书连接成功！请检查飞书群是否收到测试消息</span>';
+    } else {
+      result.innerHTML = '<span class="error">❌ ' + data.error + '</span>';
+    }
+  } catch(e) {
+    result.className = 'test-result show';
+    result.innerHTML = '<span class="error">请求失败: ' + e.message + '</span>';
+  }
+  setLoading(btn, false);
+}
+
+async function saveAndRun() {
+  await save();
+  toast('正在运行监控...', 'success');
+  // Redirect to trigger a run (simplified: just show instructions)
+  setTimeout(() => {
+    window.open('', '_self');
+    toast('请在终端运行: python -m src.main', 'success');
+  }, 500);
+}
+
+loadConfig();
+</script>
+</body>
+</html>

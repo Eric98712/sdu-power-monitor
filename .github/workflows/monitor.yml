@@ -1,0 +1,42 @@
+name: 电费监控
+
+on:
+  schedule:
+    - cron: '7 */4 * * *'      # 每 4 小时执行（偏移分钟避免整点拥堵）
+  workflow_dispatch:             # 支持手动触发
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run monitor
+        run: python -m src.main
+        env:
+          SYNJONES_AUTH: ${{ secrets.SYNJONES_AUTH }}
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+          CAMPUS_PARAM: ${{ secrets.CAMPUS_PARAM }}
+          BUILDING_PARAM: ${{ secrets.BUILDING_PARAM }}
+          ROOM: ${{ secrets.ROOM }}
+          CAMPUS_NAME: ${{ secrets.CAMPUS_NAME }}
+          BUILDING_NAME: ${{ secrets.BUILDING_NAME }}
+          LOW_POWER_THRESHOLD: ${{ secrets.LOW_POWER_THRESHOLD }}
+          MAX_ALERT_COUNT: ${{ secrets.MAX_ALERT_COUNT }}
+
+      - name: Commit state
+        if: always()
+        run: |
+          git config user.name "electricity-bot"
+          git config user.email "bot@github.com"
+          git add power_alert_state.json
+          git diff --staged --quiet || (git commit -m "chore: update alert state" && git push)

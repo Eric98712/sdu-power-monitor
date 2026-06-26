@@ -1,0 +1,32 @@
+# 电费预警系统 — 配置示例
+# 复制为 config.yaml 用于本地测试
+
+# 📍 宿舍信息
+location:
+  campus: "青岛校区"
+  campus_param: "青岛校区&青岛校区"
+  building: "凤凰居1号楼"
+  building_param: "1503975832&凤凰居1号楼"
+  room: "b111"
+
+# 🔐 认证 Token（从校园卡平台 F12 抓取）
+auth:
+  token: "bearer YOUR_TOKEN_HERE"
+
+# 📡 飞书通知
+feishu:
+  webhook_url: "https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxx"
+
+# ⚙️ 预警配置
+alert:
+  low_power_threshold: 5.0
+  max_alert_count: 3
+  daily_report_hour: 8
+
+# 🔌 接口配置（一般无需修改）
+api:
+  url: "https://mcard.sdu.edu.cn/charge/feeitem/getThirdData"
+  type: "IEC"
+  level: "3"
+  feeitemid: "410"
+  timeout: 10
