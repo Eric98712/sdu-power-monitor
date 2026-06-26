@@ -1,5 +1,8 @@
 name: 电费监控
 
+permissions:
+  contents: write
+
 on:
   schedule:
     - cron: '7 */4 * * *'      # 每 4 小时执行（偏移分钟避免整点拥堵）
