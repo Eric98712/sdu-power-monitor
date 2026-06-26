@@ -1,4 +1,4 @@
-"""电费预警系统主入口 — 查询电量 + 决策 + 通知。
+"""电费预警系统主入口 — 查询电量 + 消耗计算 + 决策 + 通知。
 
 通过 GitHub Actions 定时调用，也可本地手动运行。
 """
@@ -60,9 +60,31 @@ def run():
             print(f"[SKIP] Error alert limit reached ({state.state.error_count}/{max_count})")
         return
 
+    # 2. Calculate consumption
+    has_prev = state.has_previous_reading()
+    prev_power = state.get_prev_power()
+    daily_start_power = state.get_daily_start_power()
+
+    if has_prev and prev_power > 0:
+        consumption_4h = prev_power - power
+        if consumption_4h < 0:
+            consumption_4h = 0.0  # Recharge detected, no consumption
+        print(f"[INFO] 4h consumption: {consumption_4h:.2f} kWh (prev: {prev_power:.2f})")
+    else:
+        consumption_4h = None
+        print("[INFO] First reading, 4h consumption N/A")
+
+    if daily_start_power > 0:
+        daily_consumption = daily_start_power - power
+        if daily_consumption < 0:
+            daily_consumption = 0.0
+        print(f"[INFO] Daily consumption: {daily_consumption:.2f} kWh (start: {daily_start_power:.2f})")
+    else:
+        daily_consumption = 0.0
+
     state.record_power(power)
 
-    # 2. Low power check
+    # 3. Low power check
     if power < threshold:
         print(f"[WARN] Power low ({power:.2f} < {threshold})")
         if state.should_send_low_power_alert(max_count):
@@ -81,10 +103,16 @@ def run():
         print(f"[OK] Power sufficient ({power:.2f} kWh)")
         state.reset_low_power_if_recovered(power, threshold)
 
-        # 3. Daily report
+        # 4. Daily report
         if state.should_send_daily_report(report_hour):
             try:
-                send_daily_report(campus, building, room, power, DAILY_USAGE_ESTIMATE, webhook_url)
+                send_daily_report(
+                    campus, building, room, power,
+                    DAILY_USAGE_ESTIMATE,
+                    consumption_4h,
+                    daily_consumption,
+                    webhook_url,
+                )
                 state.record_daily_report()
                 print("[OK] Daily report sent")
             except NotifyError as e:

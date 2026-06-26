@@ -89,20 +89,29 @@ def send_daily_report(
     room: str,
     power: float,
     daily_usage: float,
+    consumption_4h: float | None,
+    daily_consumption: float,
     webhook_url: str,
 ):
     """发送每日电量日报。"""
     days_left = power / daily_usage if daily_usage > 0 else float("inf")
     days_text = f"{days_left:.1f} 天" if days_left != float("inf") else "无法估算"
 
+    fields = [
+        ("📍 位置", f"{campus} {building} {room}"),
+        ("🔋 当前剩余电量", f"{power:.2f} 度"),
+        ("📈 预计可用", f"{days_text}（按日均 {daily_usage} 度估算）"),
+    ]
+
+    if consumption_4h is not None:
+        fields.append(("⚡ 近4小时消耗", f"{consumption_4h:.2f} 度"))
+    if daily_consumption > 0:
+        fields.append(("📅 今日累计消耗", f"{daily_consumption:.2f} 度"))
+
     _send_card(
         title="📊 电量日报",
         color="blue",
-        fields=[
-            ("📍 位置", f"{campus} {building} {room}"),
-            ("🔋 当前剩余电量", f"{power:.2f} 度"),
-            ("📈 预计可用", f"{days_text}（按日均 {daily_usage} 度估算）"),
-        ],
+        fields=fields,
         webhook_url=webhook_url,
     )
 
