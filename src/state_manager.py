@@ -2,8 +2,10 @@
 
 import json
 from dataclasses import dataclass, asdict
-from datetime import date, datetime
+from datetime import date, datetime, timezone, timedelta
 from pathlib import Path
+
+CST = timezone(timedelta(hours=8))  # 中国标准时间 UTC+8
 
 
 @dataclass
@@ -42,8 +44,8 @@ class StateManager:
     # ── 电量记录与消耗计算 ──
 
     def record_power(self, power: float):
-        now = datetime.now()
-        today = date.today().isoformat()
+        now = datetime.now(CST)
+        today = now.date().isoformat()
 
         # 新的一天，重置日基准
         if self.state.daily_start_date != today or self.state.daily_start_power == 0.0:
@@ -114,12 +116,12 @@ class StateManager:
     # ── 日报逻辑 ──
 
     def should_send_daily_report(self, report_hour: int) -> bool:
-        today = date.today().isoformat()
-        now = datetime.now()
+        now = datetime.now(CST)
+        today = now.date().isoformat()
         if now.hour < report_hour:
             return False
         return self.state.last_daily_report_date != today
 
     def record_daily_report(self):
-        self.state.last_daily_report_date = date.today().isoformat()
+        self.state.last_daily_report_date = datetime.now(CST).date().isoformat()
         self._save()

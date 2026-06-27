@@ -1,7 +1,9 @@
 """飞书通知模块 — 通过自定义机器人 Webhook 发送消息。"""
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+CST = timezone(timedelta(hours=8))
 
 import requests
 
@@ -19,7 +21,7 @@ def _send_card(title: str, color: str, fields: list[tuple[str, str]], webhook_ur
         fields: [(label, value), ...] 键值对列表
         webhook_url: 飞书机器人 Webhook 地址
     """
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now = datetime.now(CST).strftime("%Y-%m-%d %H:%M:%S")
 
     field_blocks = []
     for label, value in fields:
