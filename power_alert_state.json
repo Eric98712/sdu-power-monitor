@@ -4,7 +4,7 @@
   "last_daily_report_date": "2026-08-12",
   "last_power_value": 0.6,
   "last_low_power_notified_value": 0.6,
-  "daily_start_power": 5.47,
-  "daily_start_date": "2026-08-13",
-  "last_reading_time": "2026-08-13T21:37:01.334030+08:00"
+  "daily_start_power": 0.6,
+  "daily_start_date": "2026-08-14",
+  "last_reading_time": "2026-08-14T01:05:59.163022+08:00"
 }
