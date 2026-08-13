@@ -1,6 +1,6 @@
 {
   "low_power_count": 1,
-  "error_count": 0,
+  "error_count": 1,
   "last_daily_report_date": "2026-08-12",
   "last_power_value": 0.6,
   "last_low_power_notified_value": 0.6,
