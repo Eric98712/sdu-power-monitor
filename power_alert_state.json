@@ -2,9 +2,9 @@
   "low_power_count": 0,
   "error_count": 0,
   "last_daily_report_date": "2026-10-04",
-  "last_power_value": 13.87,
+  "last_power_value": 11.04,
   "last_low_power_notified_value": -1.0,
-  "daily_start_power": 13.87,
-  "daily_start_date": "2026-10-04",
-  "last_reading_time": "2026-10-04T21:53:30.845072+08:00"
+  "daily_start_power": 11.04,
+  "daily_start_date": "2026-10-05",
+  "last_reading_time": "2026-10-05T03:31:31.919759+08:00"
 }
